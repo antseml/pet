@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app/app
+      - ./instance:/app/instance
+    restart: always
+
