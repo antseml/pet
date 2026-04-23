@@ -16,6 +16,7 @@ bp = Blueprint('main', __name__)
 
 chat_sessions = defaultdict(list)
 
+GIGACHAT_CLIENT_ID = "019d6d64-4888-7f09-82f5-7ade33b455da"
 GIGACHAT_SECRET = os.getenv("GIGACHAT_SECRET", "")
 
 @bp.route('/')
