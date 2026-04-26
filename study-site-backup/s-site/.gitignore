@@ -1,7 +1,0 @@
-.env
-*.db
-*.crt
-__pycache__/
-instance/
-*.pyc
-*.example
