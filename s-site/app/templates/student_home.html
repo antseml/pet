@@ -1,0 +1,53 @@
+﻿{# Страница ученика: просмотр новых и решенных вариантов. #}
+{% extends "base.html" %}
+{% block content %}
+<h1>Ученик</h1>
+<div class="mt-4">
+    <button id="newVariantsBtn" class="btn btn-success btn-lg me-3">Новые варианты</button>
+    <button id="completedVariantsBtn" class="btn btn-secondary btn-lg">Решенные варианты</button>
+</div>
+<div id="variantsList" class="mt-4"></div>
+<a href="/" class="btn btn-link">На главную</a>
+
+<script>
+    function loadVariants(completed) {
+        const url = '/api/variants?completed=' + completed;
+        fetch(url)
+            .then(response => response.json())
+            .then(variants => {
+                const container = document.getElementById('variantsList');
+                container.innerHTML = '';
+                if (variants.length === 0) {
+                    container.innerHTML = '<p>Нет вариантов.</p>';
+                    return;
+                }
+                let html = '<ul class="list-group">';
+                for (let i = 0; i < variants.length; i++) {
+                    const v = variants[i];
+                    html += '<li class="list-group-item"><a href="/student/variant/' + v.id + '">' + escapeHtml(v.name) + '</a></li>';
+                }
+                html += '</ul>';
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                document.getElementById('variantsList').innerHTML = '<p>Ошибка загрузки</p>';
+            });
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    document.getElementById('newVariantsBtn').onclick = () => loadVariants(false);
+    document.getElementById('completedVariantsBtn').onclick = () => loadVariants(true);
+    loadVariants(false);
+</script>
+{% endblock %}
+{# Список подгружается динамически через API по выбранному фильтру статуса. #}
