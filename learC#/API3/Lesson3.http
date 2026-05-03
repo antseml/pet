@@ -1,0 +1,45 @@
+### Регистрация
+POST http://localhost:5266/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "1234"
+}
+
+### Логин
+POST http://localhost:5266/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "123"
+}
+
+### Получить все задачи (нужен токен)
+GET http://localhost:5266/api/todo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJleHAiOjE3Nzc4MTQ5OTQsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlVc2VycyJ9.tUWpxY6qKTgZdZAO0iBlmuAM1iRESrgZRlKS10wziQU
+
+### Создать задачу (нужен токен)
+POST http://localhost:5266/api/todo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJleHAiOjE3Nzc4MTQ5OTQsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlVc2VycyJ9.tUWpxY6qKTgZdZAO0iBlmuAM1iRESrgZRlKS10wziQU
+Content-Type: application/json
+
+{
+    "title": "Купить молоко",
+    "isCompleted": false
+}
+
+### Обновить задачу (нужен токен)
+PUT http://localhost:5266/api/todo/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJleHAiOjE3Nzc4MTQ5OTQsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlVc2VycyJ9.tUWpxY6qKTgZdZAO0iBlmuAM1iRESrgZRlKS10wziQU
+Content-Type: application/json
+
+{
+    "title": "Купить молоко",
+    "isCompleted": true
+}
+
+### Удалить задачу (нужен токен)
+DELETE http://localhost:5266/api/todo/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJleHAiOjE3Nzc4MTQ5OTQsImlzcyI6Ik15QXBpIiwiYXVkIjoiTXlBcGlVc2VycyJ9.tUWpxY6qKTgZdZAO0iBlmuAM1iRESrgZRlKS10wziQU
