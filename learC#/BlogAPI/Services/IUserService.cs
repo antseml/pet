@@ -4,8 +4,8 @@ namespace Lesson2.Services
 {
     public interface IUserService
     {
-        Task<string?> login(LoginData data);
+        Task<string?> Login(LoginData data);
 
-        Task<User?> register(User user);
+        Task<User?> Register(User user);
     }
 }

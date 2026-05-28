@@ -6,5 +6,6 @@ namespace Lesson2.Services
     {
         Task<Comment?> Create(Comment comment, int UserId, int PostId);
         Task<string?> Delete(int id, int UserId);
+        Task<List<Comment>> GetByPostId(int postId);
     }
 }

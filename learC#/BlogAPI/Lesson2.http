@@ -1,0 +1,67 @@
+@baseUrl = https://localhost:5001
+@token = 
+
+### Регистрация
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "testuser@example.com",
+  "password": "Password123!"
+}
+
+### Логин
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Password123!"
+}
+
+### Все посты
+GET {{baseUrl}}/api/posts
+
+### Получить пост
+GET {{baseUrl}}/api/posts/1
+
+### Создать пост (нужен token)
+POST {{baseUrl}}/api/posts
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Мой первый пост",
+  "content": "Простой пример содержимого поста."
+}
+
+### Обновить пост (нужен token)
+PUT {{baseUrl}}/api/posts/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Обновленный пост",
+  "content": "Меняем текст поста."
+}
+
+### Удалить пост (нужен token)
+DELETE {{baseUrl}}/api/posts/1
+Authorization: Bearer {{token}}
+
+### Комментарии к посту
+GET {{baseUrl}}/api/posts/1/comments
+
+### Добавить комментарий
+POST {{baseUrl}}/api/posts/1/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "text": "Отличный пост, спасибо!"
+}
+
+### Удалить комментарий
+DELETE {{baseUrl}}/api/comments/1
+Authorization: Bearer {{token}}

@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Lesson2.Services;
 using Lesson2.Models;
-using Microsoft.Extensions.Logging;
+using Lesson2.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Lesson2.Controllers
 {
@@ -17,19 +12,18 @@ namespace Lesson2.Controllers
     {
         private readonly IPostService _postservice;
         private readonly ICommentService _commentservice;
-        private readonly ILogger <PostsController> _logger;
 
-        public PostsController(IPostService postservice, ICommentService commentservice, ILogger <PostsController> logger)
+        public PostsController(
+            IPostService postservice,
+            ICommentService commentservice)
         {
             _commentservice = commentservice;
             _postservice = postservice;
-            _logger = logger;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            _logger.LogInformation($"Получение списка постов: {DateTime.Now}");
             var posts = await _postservice.GetAll();
             return Ok(posts);
         }
@@ -38,79 +32,126 @@ namespace Lesson2.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var post = await _postservice.GetById(id);
-            if(post == null)
+            if (post == null)
             {
-                _logger.LogInformation($"Попытка получения несуществующего поста(id = {id}) : {DateTime.Now}");
-                return NotFound();
+                return NotFound(new { message = $"Post {id} not found." });
             }
-            _logger.LogInformation($"Поста с id = {id} Успешно получен : {DateTime.Now}");
+
             return Ok(post);
         }
 
-        
+        [HttpGet("{id}/comments")]
+        public async Task<IActionResult> GetComments(int id)
+        {
+            var post = await _postservice.GetById(id);
+            if (post == null)
+            {
+                return NotFound(new { message = $"Post {id} not found." });
+            }
+
+            var comments = await _commentservice.GetByPostId(id);
+            return Ok(comments);
+        }
+
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(Post post)
+        public async Task<IActionResult> Create([FromBody] CreatePostRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var created = await _postservice.Create(post, userId);
-            _logger.LogInformation($"Создание поста от пользователя(id = {userId}) : {DateTime.Now}");
-            return Ok(created);
+            var post = new Post
+            {
+                Title = request.Title.Trim(),
+                Content = request.Content.Trim()
+            };
+
+            var created = await _postservice.Create(post, GetCurrentUserId());
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePostRequest request)
+        {
+            var toUpdate = new Post
+            {
+                Title = request.Title.Trim(),
+                Content = request.Content.Trim()
+            };
+
+            var result = await _postservice.Update(id, toUpdate, GetCurrentUserId());
+            if (result == null)
+            {
+                return NotFound(new { message = $"Post {id} not found." });
+            }
+
+            if (result == "permission denied")
+            {
+                return Forbid();
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var deleted = await _postservice.Delete(id, userId);
-            if(deleted == "Not Found")
+            var deleted = await _postservice.Delete(id, GetCurrentUserId());
+            if (deleted == "Not Found")
             {
-                _logger.LogInformation($"Попытка удаления несуществующего поста : {userId}, {DateTime.Now}");
-                return NotFound();
+                return NotFound(new { message = $"Post {id} not found." });
             }
-            if(deleted == "permission denied")
+            if (deleted == "permission denied")
             {
-                _logger.LogInformation($"Попытка удаления не своего поста : {userId}, {DateTime.Now}");
-                return Conflict("Вы не являетесь создателем поста");
+                return Forbid();
             }
-            _logger.LogInformation($"Пост с id = {id} удален : {userId}, {DateTime.Now}");
-            return Ok();
+
+            return NoContent();
         }
 
         [HttpPost("{id}/comments")]
         [Authorize]
-        public async Task<IActionResult> CreateComment(Comment comment, int id)
+        public async Task<IActionResult> CreateComment(int id, [FromBody] CreateCommentRequest request)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var created = await _commentservice.Create(comment, userId, id);
-            if(created == null)
+            var comment = new Comment
             {
-                _logger.LogInformation($"Попытка создания комментария под несуществующим постом от пользователя с id = {userId} : {DateTime.Now}");
-                return Conflict("Данного поста не существует");
+                Text = request.Text.Trim()
+            };
+
+            var created = await _commentservice.Create(comment, GetCurrentUserId(), id);
+            if (created == null)
+            {
+                return NotFound(new { message = $"Post {id} not found." });
             }
-            _logger.LogInformation($"Пользователь({userId}) создал комментарий({created.Id}) под постом({id}) : {DateTime.Now}");
-            return Ok(created);
+
+            return Created($"/api/posts/{id}/comments", created);
         }
 
-        [HttpDelete("api/comments/{id}")]
+        [HttpDelete("~/api/comments/{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var deleted = await _commentservice.Delete(id, userId);
-            if(deleted == "Not Found")
+            var deleted = await _commentservice.Delete(id, GetCurrentUserId());
+            if (deleted == "Not Found")
             {
-                _logger.LogInformation($"Попытка удаления несуществующего комментария : {userId}, {DateTime.Now}");
-                return NotFound();
+                return NotFound(new { message = $"Comment {id} not found." });
             }
-            if(deleted == "permission denied")
+            if (deleted == "permission denied")
             {
-                _logger.LogInformation($"Попытка удаления не своего комментария : {userId}, {DateTime.Now}");
-                return Conflict("Вы не являетесь создателем комментария");
+                return Forbid();
             }
-            _logger.LogInformation($"Пост с id = {id} удален : {userId}, {DateTime.Now}");
-            return Ok();
+
+            return NoContent();
+        }
+
+        private int GetCurrentUserId()
+        {
+            var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(claimValue, out var userId))
+            {
+                return userId;
+            }
+
+            throw new InvalidOperationException("Invalid user identifier in JWT token.");
         }
     }
 }

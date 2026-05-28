@@ -7,11 +7,11 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 
+
 namespace Lesson2.Services
 {
     public class TokenGenerate : ITokenGenerate
     {
-
         private readonly IConfiguration _config;
 
         public TokenGenerate(IConfiguration config)
@@ -21,7 +21,8 @@ namespace Lesson2.Services
 
         public string GenerateToken(string username, int userId)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var secret = _config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

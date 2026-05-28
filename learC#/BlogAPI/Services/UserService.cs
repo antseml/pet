@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Lesson2.Services
 {
-    public class UserService : IUserService
-    {
+public class UserService : IUserService
+{
         private readonly AppDbContext _context;
         private readonly ITokenGenerate _token;
         public UserService(AppDbContext context, ITokenGenerate token)
@@ -13,7 +13,7 @@ namespace Lesson2.Services
             _token = token;
         }
 
-        public async Task<string?> login(LoginData data)
+        public async Task<string?> Login(LoginData data)
         {
             var user = await _context.Users.AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Username == data.Username || u.Email == data.Username);
@@ -21,7 +21,7 @@ namespace Lesson2.Services
             return _token.GenerateToken(user.Username, user.Id);
         }
 
-        public async Task<User?> register(User user)
+        public async Task<User?> Register(User user)
         {
             var _user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == user.Username || u.Email == user.Email);

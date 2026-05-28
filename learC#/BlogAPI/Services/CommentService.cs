@@ -15,12 +15,22 @@ namespace Lesson2.Services
         {
             var post = await _context.Posts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == PostId);
             if(post == null)return null;
-            comment.CreatedAt = DateTime.Now;
+            comment.CreatedAt = DateTime.UtcNow;
             comment.UserId = UserId;
             comment.PostId = PostId;
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
             return comment;
+        }
+
+        public async Task<List<Comment>> GetByPostId(int postId)
+        {
+            return await _context.Comments
+                .AsNoTracking()
+                .Where(c => c.PostId == postId)
+                .Include(c => c.User)
+                .OrderBy(c => c.CreatedAt)
+                .ToListAsync();
         }
 
         public async Task<string?> Delete(int id, int UserId){

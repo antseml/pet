@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Lesson2.Services;
 using Lesson2.Models;
+using Lesson2.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Lesson2.Controllers
@@ -22,30 +18,45 @@ namespace Lesson2.Controllers
             _logger = logger;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Logind(LoginData data)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterRequest request)
         {
-            var token = await _userservice.login(data);
-            if(token == null)
+            var user = new User
             {
-                _logger.LogInformation($"Ошибка аунтификации: {DateTime.Now}");
-                return Unauthorized();
+                Username = request.Username.Trim(),
+                Email = request.Email.Trim(),
+                HashPassword = request.Password
+            };
+
+            var created = await _userservice.Register(user);
+            if (created == null)
+            {
+                _logger.LogInformation("Registration failed: user already exists {Username}/{Email}", request.Username, request.Email);
+                return Conflict(new { message = "User with this username or email already exists." });
             }
-            _logger.LogInformation($"Успешная авторизация пользователя({data.Username}) : {DateTime.Now}");
-            return Ok(new {token});
+
+            _logger.LogInformation("User registered {Username}", request.Username);
+            return Created(string.Empty, new { id = created.Id, created.Username, created.Email });
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> register(User user)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginRequest data)
         {
-            var created = await _userservice.register(user);
-            if(created == null)
+            var loginData = new LoginData
             {
-                _logger.LogInformation($"Попытка повторной регистрации с данными:{user.Username}, {user.Email}. {DateTime.Now}");
-                return Conflict("Ползователь с такими данными уже существует");
+                Username = data.Username,
+                Password = data.Password
+            };
+
+            var token = await _userservice.Login(loginData);
+            if (token == null)
+            {
+                _logger.LogInformation("Invalid login attempt for {Username}", data.Username);
+                return Unauthorized(new { message = "Invalid username or password." });
             }
-            _logger.LogInformation($"Создан пользователь({user.Username}) : {DateTime.Now}");
-            return Ok(created);
+
+            _logger.LogInformation("Successful login {Username}", data.Username);
+            return Ok(new { token });
         }
     }
 }
